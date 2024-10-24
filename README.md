@@ -40,5 +40,3 @@ Use stock names according to Yahoo Finance
  - No order book simulation
  - No shorting
  - No support for market opening times, buy and sell whenever you wish
-
--
