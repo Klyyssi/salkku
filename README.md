@@ -34,8 +34,11 @@ Use stock names according to Yahoo Finance
 ./salkku.py -l
 ```
 
-## Limits
+## Limitations
 
  - No support for currencies (yet?)
  - No order book simulation
  - No shorting
+ - No support for market opening times, buy and sell whenever you wish
+
+-
