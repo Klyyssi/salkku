@@ -36,5 +36,6 @@ Use stock names according to Yahoo Finance
 
 ## Limits
 
- - No support for multiple currencies
+ - No support for currencies (yet?)
  - No order book simulation
+ - No shorting
