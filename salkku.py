@@ -10,8 +10,11 @@ from operator import itemgetter
 
 cfg_path = "salkkuconfig.json"
 
+def get_cfg_path():
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), cfg_path)
+
 def write_config(cfg):
-    with open(cfg_path, "w") as out:
+    with open(get_cfg_path(), "w") as out:
         out.write(json.dumps(cfg))
 
 def create_config():
@@ -138,10 +141,12 @@ def list_details(cfg):
         if type == 'SELL':
             stock = row['stock']
             profit = row['profit']
-            print(f' - {type} {stock} {amount} {profit:.2f} {date}')
+            price = row['price']
+            print(f' - {type} {stock} {amount} {price} {profit:.2f} {date}')
         elif type == 'BUY':
             stock = row['stock']
-            print(f' - {type} {stock} {amount} {date}')
+            price = row['price']
+            print(f' - {type} {stock} {amount} {price} {date}')
         else:
             print(f' - {type} {amount} {date}')
     print('\nCommission percentage:', cfg['COMMISSION_PERCENTAGE'])
@@ -160,25 +165,25 @@ def list_details(cfg):
     percentage = ((total_val / added_funds) - 1) * 100
     print(f'Total value: {total_val:.2f} ({percentage:.2f}%)')
     print('\nYour portfolio')
-    print('Stock\t\tAmount\tPrice\tProfit')
+    print('Stock\t\tAmount\tCurr Price\tProfit')
     for stock in cfg['PORTFOLIO']:
         amount, avg_buy_price = itemgetter('amount', 'avg_buy_price')(cfg['PORTFOLIO'][stock])
         price = stock_prices[stock]
         profit = price * amount - avg_buy_price * amount
         profit_percentage = (price / avg_buy_price - 1) * 100
         stock_adjusted = stock.ljust(10)
-        print(f'{stock_adjusted}\t{amount}\t{price:.2f}\t{profit:.2f} ({profit_percentage:.2f}%)')
+        print(f'{stock_adjusted}\t{amount}\t{price:.2f}\t\t{profit:.2f} ({profit_percentage:.2f}%)')
 
 def main():
-    if os.path.exists(cfg_path):
-        with open(cfg_path, "r") as js:
+    if os.path.exists(get_cfg_path()):
+        with open(get_cfg_path(), "r") as js:
             cfg = json.load(js)
     else:
         cfg = create_config()
     
     parser = argparse.ArgumentParser(
                     prog='Salkku',
-                    description='Simulate buy, hold and sell stocks')
+                    description='Buy, hold and sell stocks with fake money')
 
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('--buy', action='store_true')
