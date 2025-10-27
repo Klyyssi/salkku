@@ -5,8 +5,9 @@ import json
 import argparse
 import yfinance as yf
 import time
-from datetime import datetime
+from datetime import datetime, time as dtime, timezone, timedelta
 from operator import itemgetter
+import zoneinfo
 
 cfg_path = "salkkuconfig.json"
 
@@ -19,8 +20,8 @@ def write_config(cfg):
 
 def create_config():
     default_config = {
-        'COMMISSION_PERCENTAGE': 0.2,
-        'COMMISSION_MINIMUM': 10,
+        'COMMISSION_PERCENTAGE': 0,
+        'COMMISSION_MINIMUM': 0,
         'COMMISSION_PAID': 0,
         'FUNDS': 0,
         'PORTFOLIO': {},
@@ -32,6 +33,18 @@ def create_config():
 def get_last_tick(stock):
     try:
         stock = yf.Ticker(stock)
+        try:
+            eastern = zoneinfo.ZoneInfo('America/New_York')
+            now_et = datetime.now(eastern)
+        except ImportError:
+            now_utc = datetime.now(timezone.utc)
+            now_et = now_utc - timedelta(hours=4)
+
+        market_open = dtime(9, 30)
+
+        if now_et.time() < market_open:
+            return stock.info['preMarketPrice']
+
         return stock.info['currentPrice']
     except:
         return None
@@ -81,14 +94,16 @@ def remove_from_portfolio(cfg, stock, amount):
     if cfg['PORTFOLIO'][stock]['amount'] == 0:
         del cfg['PORTFOLIO'][stock]
 
-def buy(cfg, stock, amount):
-    if not amount:
-        print('Amount must be greater than 0')
+def buy(cfg, stock, amount, total):
+    if not amount and not total:
+        print('Amount or total must be greater than 0')
         exit(1)
     price = get_last_tick(stock)
     if not price:
         print(f'Stock {stock} not found')
         exit(1)
+    if not amount:
+        amount = round(total / price, 1)
     total = price * amount
     commission = max(cfg['COMMISSION_PERCENTAGE'] / 100 * total, cfg['COMMISSION_MINIMUM'])
     if cfg['FUNDS'] < commission + total:
@@ -193,6 +208,7 @@ def main():
     group.add_argument('--search', action='store_true')
     parser.add_argument('--stock')
     parser.add_argument('-a', '--amount', type=int)
+    parser.add_argument('-p', '--price', type=float)
     args = parser.parse_args()
 
     if args.add_funds:
@@ -200,7 +216,7 @@ def main():
     if args.list:
         list_details(cfg)
     if args.buy:
-        buy(cfg, args.stock, args.amount)
+        buy(cfg, args.stock, args.amount, args.price)
     if args.sell:
         sell(cfg, args.stock, args.amount)
     if args.search:
