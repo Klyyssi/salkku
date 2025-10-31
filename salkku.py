@@ -207,7 +207,7 @@ def main():
     group.add_argument('-l', '--list', action='store_true')
     group.add_argument('--search', action='store_true')
     parser.add_argument('--stock')
-    parser.add_argument('-a', '--amount', type=int)
+    parser.add_argument('-a', '--amount', type=float)
     parser.add_argument('-p', '--price', type=float)
     args = parser.parse_args()
 
